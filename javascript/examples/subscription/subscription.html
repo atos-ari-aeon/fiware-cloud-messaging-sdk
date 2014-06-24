@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>	
+	<script type="text/javascript" src="aeonSDK.js"></script>
+	<script type="text/javascript" src="config.js"></script>		
+	<script type="text/javascript" src="socket.io.js"></script>
+</head>
+<body>
+
+	<label id="subLabel"></label>
+
+	<script type="text/javascript">
+		
+		var sdk = new AeonSDK(SUB_URL, YOUR_ID , YOUR_DESC);
+		
+		sdk.subscribe(function(received){
+			console.log(received);
+			$('#subLabel').append(" "+received.number);
+		});
+			
+		setTimeout(function(){
+		    sdk.pauseSubscription();
+		    console.log("lets pause 3 secs");
+
+		    setTimeout(function(){
+		        sdk.continueSubscription();
+		        console.log("lets continue");
+		        setTimeout(function(){
+		            sdk.deleteSubscription();
+		            console.log("Closing. Bye bye");
+		        }, 3000);
+		    }, 3000);
+		}, 3000);
+	</script>
+
+</body>
+</html>
