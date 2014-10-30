@@ -22,9 +22,9 @@ var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 
 //Constants
 var config = {
-	SUBSCRIPTION_HOST : 'lcb-sub.herokuapp.com',
+	SUBSCRIPTION_HOST : 'aeon-sub.herokuapp.com',
 	SUBSCRIPTION_PORT : '80',
-	REST_SERVER_HOST:'lcb.herokuapp.com',
+	REST_SERVER_HOST:'aeon-back.herokuapp.com',
 	REST_SERVER_PORT:'80'
 }
 
