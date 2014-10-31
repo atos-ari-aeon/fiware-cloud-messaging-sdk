@@ -16,8 +16,12 @@
   * Authors: Javier García Hernández (javier.garcia@atos.net)
   */
 
-//var io = require('socket.io-client');
-//var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+/* uncomment for node.js module
+var io = require('socket.io-client');
+var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+
+module.exports = AeonSDK;
+*/
 
 //USER Response Errors
 var UNKNWON_ERROR = {};
@@ -264,24 +268,27 @@ AeonSDK.prototype.subscribe = function subscribe(deliveredMessage, control){
             //var socketServer = this.socket_server_endpoint;
 
             doHTTPRequest(this.rest_server_endpoint+'/subscribe/config','GET', null, function(response){
-                var socketServer = response.result[0].socket_server;
+                if(response.code == 200){
+                    var socketServer = response.result[0].socket_server;
 
-                //Connect to the SocketIO server
-                myObject.socket = io.connect(socketServer, {'force new connection': true});
+                    //Connect to the SocketIO server
+                    myObject.socket = io.connect(socketServer, {'force new connection': true});
 
-                //Subscribe throught the API to the mongoDB
-                doHTTPRequest(myObject.url,'GET', null, function(response){
+                    //Subscribe throught the API to the mongoDB
+                    doHTTPRequest(myObject.url,'GET', null, function(response){
 
-                    if(response.code == 200){
+                        if(response.code == 200){
 
-                        //Subscribe to a queue
-                        this.socket = subscribeToQueue(myObject, response.result[0], myObject.control, deliveredMessage);
+                            //Subscribe to a queue
+                            this.socket = subscribeToQueue(myObject, response.result[0], myObject.control, deliveredMessage);
 
-                    }
-                    else
-                        myObject.control(controlTranslator(response));
-                });
-
+                        }
+                        else
+                            myObject.control(controlTranslator(response));
+                    });
+                }
+                else
+                    myObject.control(controlTranslator(response));
             });
 
         }
@@ -367,8 +374,11 @@ var doHTTPRequest = function doHTTPRequest(url, method, data, next){
         http.open(method, url, true);
 
         http.onreadystatechange = function() {
-            if (http.readyState == 4 && http.status==200) {
+            if (http.readyState == 4 && http.status==200) {             
                 next(JSON.parse(http.responseText));
+            }
+            if (http.readyState == 4 && http.status!=200) {
+                next(UNKNWON_ERROR);
             }
         }
 
@@ -388,6 +398,9 @@ var doHTTPRequest = function doHTTPRequest(url, method, data, next){
                 if(method == "POST")
                     next(JSON.parse(http.responseText));
             }
+            if (http.readyState == 4 && http.status!=200) {
+                next(UNKNWON_ERROR);
+            }
         }
 
         http.send(JSON.stringify(data));
@@ -402,48 +415,48 @@ var doHTTPRequest = function doHTTPRequest(url, method, data, next){
 // var data = {id:"webapp", desc:"webapp"};
 // var code = 0;
 // var sdk_subscribe = new AeonSDK("http://localhost:3000/subscribe/4e59b362-67d6-4220-808d-5e3857f278c7", data, function controlFn(data){
-// 	 console.log("Control_SUB:");
-// 	 console.log(data);
+//   console.log("Control_SUB:");
+//   console.log(data);
 // });
 
 // var sdk_publish = new AeonSDK('http://localhost:3000/publish/29b85779-4e6f-43cc-9d77-0e4eca4b06b5', null, function controlFn2(data){
-// 	 console.log("Control_PUB:");
-// 	 console.log(data);
+//   console.log("Control_PUB:");
+//   console.log(data);
 // });
 
 
 // sdk_subscribe.subscribe(function deliveredMessage(data){
-// 	console.log("Message:");
-// 	console.log(data);
+//  console.log("Message:");
+//  console.log(data);
 // });
 
 // setTimeout(function() {
-// 	sdk_subscribe.publish({message:"Esto mola"});
+//  sdk_subscribe.publish({message:"Esto mola"});
 // }, 1000);
 
 // setTimeout(function() {
-// 	console.log("Pausando...")
+//  console.log("Pausando...")
 //     sdk_subscribe.pauseSubscription();
 
 //     sdk_publish.publish({message:"Parece q estamos pausados"});
 
-// 	setTimeout(function() {
-// 		console.log("Continue...")
-// 	    sdk_subscribe.continueSubscription();
+//  setTimeout(function() {
+//      console.log("Continue...")
+//      sdk_subscribe.continueSubscription();
 
-// 	    sdk_publish.publish({message:"Ahora recibo todo!"});
+//      sdk_publish.publish({message:"Ahora recibo todo!"});
 
-// 		setTimeout(function() {
-// 			console.log("Borrando...")
-// 		    sdk_subscribe.deleteSubscription();
+//      setTimeout(function() {
+//          console.log("Borrando...")
+//          sdk_subscribe.deleteSubscription();
 
-// 		}, 3000);
-// 	}, 3000);
+//      }, 3000);
+//  }, 3000);
 
 // }, 3000);
 
 
 // sdk_publish.subscribe(function deliveredMessage(data){
-// 		console.log("Message:");
-// 		console.log(data);
+//      console.log("Message:");
+//      console.log(data);
 // });
