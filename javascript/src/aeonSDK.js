@@ -134,7 +134,6 @@ var controlEmpty = function controlEmpty(){
 };
 
 function setControl(control){
-    console.log(control);
     if(control === undefined)
         control = controlEmpty;
 
@@ -200,7 +199,7 @@ function getServerEndpoint(url){
 
     var parts = url.split('/');
 
-    return parts[2];
+    return parts[0] + "//" + parts[2];
 }
 
 function AeonSDK(url, subscriptionData){
@@ -264,7 +263,7 @@ AeonSDK.prototype.subscribe = function subscribe(deliveredMessage, control){
 
             //var socketServer = this.socket_server_endpoint;
 
-            doHTTPRequest('//'+this.rest_server_endpoint+'/subscribe/config','GET', null, function(response){
+            doHTTPRequest(this.rest_server_endpoint+'/subscribe/config','GET', null, function(response){
                 var socketServer = response.result[0].socket_server;
 
                 //Connect to the SocketIO server
@@ -325,7 +324,7 @@ AeonSDK.prototype.deleteSubscription = function deleteSubscription(){
         this.socket.emit('unSubscribeQueue', this.subscription);
 
         //Delete Queue from the API
-        var url = '//'+this.rest_server_endpoint+'/subscribe/'+this.subID;
+        var url = this.rest_server_endpoint+'/subscribe/'+this.subID;
 
         doHTTPRequest(url, 'DELETE', this.subscription);
 
@@ -357,7 +356,7 @@ AeonSDK.prototype.publish = function publish(data,control){
 var doHTTPRequest = function doHTTPRequest(url, method, data, next){
 
     var http = null;
-    console.log(url);
+
     http = new XMLHttpRequest();
 
     http.addEventListener('error', function(error){
