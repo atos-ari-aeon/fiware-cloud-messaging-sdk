@@ -134,7 +134,7 @@ var controlEmpty = function controlEmpty(){
 };
 
 function setControl(control){
-    if(control === undefined)
+    if ( (control === undefined) && (control === null) )
         control = controlEmpty;
 
     return control;
