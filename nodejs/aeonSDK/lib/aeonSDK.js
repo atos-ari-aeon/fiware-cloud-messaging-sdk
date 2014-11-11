@@ -19,6 +19,8 @@
 var io = require('socket.io-client');
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+
 module.exports = AeonSDK;
 
 //USER Response Errors
