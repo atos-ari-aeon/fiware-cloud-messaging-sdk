@@ -39,7 +39,9 @@ var received = function received(msg) {
     console.log("Received: ", msg)
 }
 
-sdk = new AeonSDK(config.SUB_URL, config.YOUR_ID , config.YOUR_DESC);
+var subscriptionData = { "id": config.YOUR_ID, "desc": config.YOUR_DESC};
+
+sdk = new AeonSDK(config.SUB_URL, subscriptionData);
 
 sdk.subscribe(received, control);
 console.log("Ok, we are subscribed, waiting for messages");
