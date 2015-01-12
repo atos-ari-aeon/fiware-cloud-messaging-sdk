@@ -2,7 +2,8 @@
 
 if [ $# -ne 1 ] 
 then
-  echo "usage ./pack_releases.sh releas_number (x.y.z)"
+  echo "usage ./pack_releases.sh release_number (x.y.z)"
+  echo "Please ensure that release number is the same in package.json"
   exit
 fi
 
