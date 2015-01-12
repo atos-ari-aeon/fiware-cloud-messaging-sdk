@@ -1,31 +1,31 @@
 /**
-  * Copyright (C) 2013 ATOS
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *         http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *
-  * Authors: Javier García Hernández (javier.garcia@atos.net)
-  */
+ * Copyright (C) 2013 ATOS
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Authors: Javier García Hernández (javier.garcia@atos.net)
+ */
+
+
 
 var io = require('socket.io-client');
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 
-<<<<<<< HEAD
-=======
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 module.exports = AeonSDK;
 
->>>>>>> e89290d8f4295dd2f073a4c9c0fbff75b3f8bdb5
+
 //USER Response Errors
 var UNKNWON_ERROR = {};
 UNKNWON_ERROR.error = true;
@@ -88,7 +88,7 @@ UNSUBSCRIBED.code = 252;
 UNSUBSCRIBED.msg = "You have been unsubscribed.";
 
 //function to manage errors
-function controlTranslator(message){
+function controlTranslator(message) {
 
     var code;
 
@@ -124,47 +124,42 @@ function controlTranslator(message){
     }
 }
 
-function getSubID(url){
+function getSubID(url) {
     //Example URL: http://endpoint:port/subscribe/:subID
-    try{
+    try {
         var tmp = url.split('/');
-        return tmp[tmp.length-1];
-    }
-    catch(err){
+        return tmp[tmp.length - 1];
+    } catch (err) {
         return URL_ERROR;
     }
 
 }
 
-var controlEmpty = function controlEmpty(){
+var controlEmpty = function controlEmpty() {
 
 };
 
-function setControl(control){
-<<<<<<< HEAD
-	if(control === null)
-			control = controlEmpty;
-=======
-    if ( (control === undefined) && (control === null) )
+function setControl(control) {
+
+    if ((control === undefined) || (control === null))
         control = controlEmpty;
->>>>>>> e89290d8f4295dd2f073a4c9c0fbff75b3f8bdb5
 
     return control;
 }
 
-function subscribeToQueue(myObject, subscriptionData, control, deliveredMessage){
+function subscribeToQueue(myObject, subscriptionData, control, deliveredMessage) {
 
     var localSocket = myObject.socket;
 
     //var subscription = this.subscription;
 
     //Store the subscription for future needs
-    try{
+    try {
         subscription = subscriptionData;
 
         myObject.subscription = subscription;
 
-    }catch(e){
+    } catch (e) {
         //Return the error response
         subscription = null;
 
@@ -172,94 +167,63 @@ function subscribeToQueue(myObject, subscriptionData, control, deliveredMessage)
 
     }
 
-    if(!localSocket.socket.connected){
-        localSocket.once('connect',function subscribeMe(){
+    if (!localSocket.socket.connected) {
+        localSocket.once('connect', function subscribeMe() {
 
-            if(subscription != null){
+            if (subscription != null) {
 
                 localSocket.emit('subscribeQueue', subscription);
 
-                localSocket.on("message-" + subscription.subkey, function manageDataMessages(data){
+                localSocket.on("message-" + subscription.subkey, function manageDataMessages(data) {
                     deliveredMessage(data);
                 });
             }
         });
-    }
-    else{
+    } else {
         localSocket.emit('subscribeQueue', subscription);
-        localSocket.on("message-" + subscription.subkey, function manageDataMessages(data){
+        localSocket.on("message-" + subscription.subkey, function manageDataMessages(data) {
             deliveredMessage(data);
         });
     }
 
-    localSocket.on('control', function manageControlMessages(data){
+    localSocket.on('control', function manageControlMessages(data) {
         control(controlTranslator(data));
     });
 
-    localSocket.on('disconnect', function disconnect(){
+    localSocket.on('disconnect', function disconnect() {
         control(INFRASTRUCTURE_DOWN);
     });
 
-    localSocket.on('reconnect', function reconnect(){
+    localSocket.on('reconnect', function reconnect() {
         localSocket.emit('subscribeQueue', myObject.subscription);
     });
 
     return localSocket;
 }
 
-function getServerEndpoint(url){
+function getServerEndpoint(url) {
 
     var parts = url.split('/');
 
     return parts[0] + "//" + parts[2];
 }
 
-function getServerEndpoint(url){
 
-	var parts = url.split('/');
+function AeonSDK(url, subscriptionData) {
 
-	return parts[2];
-}
-
-function AeonSDK(url, subscriptionData){
-
-<<<<<<< HEAD
-	this.rest_server_endpoint = getServerEndpoint(url);
-
-	this.mode = '';
-	this.subscription = null;
-	this.control = null;
-=======
     this.rest_server_endpoint = getServerEndpoint(url);
->>>>>>> e89290d8f4295dd2f073a4c9c0fbff75b3f8bdb5
-
     this.mode = '';
     this.subscription = null;
     this.control = null;
 
     //Detects if the url is a publish or a subscription url
-    if(url.indexOf("publish") != -1){ //Publish url
+    if (url.indexOf("publish") != -1) { //Publish url
         this.mode = "publish";
 
         this.url = url;
 
-    }
-    else if(url.indexOf("subscribe") != -1 ){ //subscription url
+    } else if (url.indexOf("subscribe") != -1) { //subscription url
 
-<<<<<<< HEAD
-			if(this.subscriptionData.id == undefined || this.subscriptionData.desc == undefined)
-				this.mode = "error";
-			else{
-				this.mode = "subscribe";
-
-				this.url = url;
-
-				this.url += '?id='+this.subscriptionData.id+'&desc='+this.subscriptionData.desc;
-			}
-		}
-		else
-			this.mode = "error";
-=======
         if(subscriptionData != undefined){
             this.subscriptionData = subscriptionData;
 
@@ -269,8 +233,6 @@ function AeonSDK(url, subscriptionData){
                 this.mode = "subscribe";
 
                 this.url = url;
->>>>>>> e89290d8f4295dd2f073a4c9c0fbff75b3f8bdb5
-
                 this.url += '?id='+this.subscriptionData.id+'&desc='+this.subscriptionData.desc;
             }
         }
@@ -281,184 +243,136 @@ function AeonSDK(url, subscriptionData){
     else
         this.mode = "error";
 
-<<<<<<< HEAD
-=======
 }
 
->>>>>>> e89290d8f4295dd2f073a4c9c0fbff75b3f8bdb5
-AeonSDK.prototype.getSubscription = function(){
+AeonSDK.prototype.getSubscription = function () {
     return this.subscription;
 }
 
-AeonSDK.prototype.setSubscription = function(subscription){
+AeonSDK.prototype.setSubscription = function (subscription) {
     this.subscription = subscription;
 }
 
-AeonSDK.prototype.subscribe = function subscribe(deliveredMessage, control){
+AeonSDK.prototype.subscribe = function subscribe(deliveredMessage, control) {
 
     var myObject = this;
 
     this.control = setControl(control);
 
-<<<<<<< HEAD
-		if(this.subscriptionData !== null){
-=======
-    if(this.mode == 'subscribe'){
 
-        if(this.subscriptionData !== null){
->>>>>>> e89290d8f4295dd2f073a4c9c0fbff75b3f8bdb5
+    if (this.mode == 'subscribe') {
 
+        if (this.subscriptionData !== null) {
             this.subID = getSubID(this.url);
 
-<<<<<<< HEAD
-			//var socketServer = this.socket_server_endpoint;
-
-			doHTTPRequest('//'+this.rest_server_endpoint+'/subscribe/config','GET', null, function(response){
-				var socketServer = response.result[0].socket_server;
-
-				//Connect to the SocketIO server
-				myObject.socket = io.connect(socketServer, {'force new connection': true});
-
-				//Subscribe throught the API to the mongoDB
-				doHTTPRequest(myObject.url,'GET', null, function(response){
-
-					if(response.code == 200){
-
-						//Subscribe to a queue
-						this.socket = subscribeToQueue(myObject, response.result[0], myObject.control, deliveredMessage);
-
-					}
-					else
-						myObject.control(controlTranslator(response));
-				});
-
-			});
-=======
             //var socketServer = this.socket_server_endpoint;
 
-            doHTTPRequest(this.rest_server_endpoint+'/subscribe/config','GET', null, function(response){
-                if(response.code == 200){
-	                var socketServer = response.result[0].socket_server;
+            doHTTPRequest(this.rest_server_endpoint + '/subscribe/config', 'GET', null, function (response) {
+                if (response.code == 200) {
+                    var socketServer = response.result[0].socket_server;
 
-	                //Connect to the SocketIO server
-	                myObject.socket = io.connect(socketServer, {'force new connection': true});
+                    //Connect to the SocketIO server
+                    myObject.socket = io.connect(socketServer, {
+                        'force new connection': true
+                    });
 
-	                //Subscribe throught the API to the mongoDB
-	                doHTTPRequest(myObject.url,'GET', null, function(response){
+                    //Subscribe throught the API to the mongoDB
+                    doHTTPRequest(myObject.url, 'GET', null, function (response) {
 
-	                    if(response.code == 200){
+                        if (response.code == 200) {
 
-	                        //Subscribe to a queue
-	                        this.socket = subscribeToQueue(myObject, response.result[0], myObject.control, deliveredMessage);
+                            //Subscribe to a queue
+                            this.socket = subscribeToQueue(myObject, response.result[0], myObject.control, deliveredMessage);
 
-	                    }
-	                    else
-	                        myObject.control(controlTranslator(response));
-	                });
-	            }
-	            else
-	            	myObject.control(controlTranslator(response));
+                        } else
+                            myObject.control(controlTranslator(response));
+                    });
+                } else
+                    myObject.control(controlTranslator(response));
             });
 
         }
->>>>>>> e89290d8f4295dd2f073a4c9c0fbff75b3f8bdb5
 
-    }
-    else if(this.mode == "publish")
+    } else if (this.mode == "publish")
         this.control(controlTranslator(SDK_PUB_MODE));
     else
         this.control(controlTranslator(URL_ERROR));
 
 }
 
-AeonSDK.prototype.pauseSubscription = function pauseSubscription(){
+AeonSDK.prototype.pauseSubscription = function pauseSubscription() {
 
-    if(this.mode == 'subscribe'){
+    if (this.mode == 'subscribe') {
 
-        if(this.subscription != null)
+        if (this.subscription != null)
             this.socket.emit('unSubscribeQueue', this.subscription);
-    }
-    else
+    } else
         this.control(controlTranslator(SDK_PUB_MODE));
 
 }
 
-AeonSDK.prototype.continueSubscription = function continueSubscription(){
+AeonSDK.prototype.continueSubscription = function continueSubscription() {
 
-    if(this.mode == 'subscribe'){
+    if (this.mode == 'subscribe') {
 
-        if(this.subscription != null)
+        if (this.subscription != null)
             this.socket.emit('subscribeQueue', this.subscription);
-    }
-    else
+    } else
         this.control(controlTranslator(SDK_PUB_MODE));
 
 }
 
-AeonSDK.prototype.deleteSubscription = function deleteSubscription(){
+AeonSDK.prototype.deleteSubscription = function deleteSubscription() {
 
-    if(this.mode == 'subscribe'){
+    if (this.mode == 'subscribe') {
         this.socket.emit('unSubscribeQueue', this.subscription);
 
-<<<<<<< HEAD
-		//Delete Queue from the API
-		var url = '//'+this.rest_server_endpoint+'/subscribe/'+this.subID;
-=======
         //Delete Queue from the API
-        var url = this.rest_server_endpoint+'/subscribe/'+this.subID;
->>>>>>> e89290d8f4295dd2f073a4c9c0fbff75b3f8bdb5
+        var url = this.rest_server_endpoint + '/subscribe/' + this.subID;
 
         doHTTPRequest(url, 'DELETE', this.subscription);
 
-    }
-    else
+    } else
         this.control(controlTranslator(SDK_PUB_MODE));
 }
 
-AeonSDK.prototype.publish = function publish(data,control){
+AeonSDK.prototype.publish = function publish(data, control) {
 
     this.control = setControl(control);
-
     var myObject = this;
 
-    if(this.mode == 'publish'){
-        doHTTPRequest(this.url, 'POST', data, function (response){
+    if (this.mode == 'publish') {
+        doHTTPRequest(this.url, 'POST', data, function (response) {
 
             //if(response.code == 107)
             myObject.control(controlTranslator(response));
 
         });
-    }
-    else
+    } else
         this.control(controlTranslator(SDK_SUB_MODE));
 
 }
 
 //Internal function to manage the XHR requests
-var doHTTPRequest = function doHTTPRequest(url, method, data, next){
+var doHTTPRequest = function doHTTPRequest(url, method, data, next) {
 
-<<<<<<< HEAD
-	var http = null;
-	console.log(url);
-	http = new XMLHttpRequest();
-=======
+
     var http = null;
 
     http = new XMLHttpRequest();
->>>>>>> e89290d8f4295dd2f073a4c9c0fbff75b3f8bdb5
-
-    http.addEventListener('error', function(error){
+    
+    http.addEventListener('error', function (error) {
         next(INFRASTRUCTURE_DOWN);
     }, false);
 
-    if(method == 'GET'){
+    if (method == 'GET') {
         http.open(method, url, true);
 
-        http.onreadystatechange = function() {
-            if (http.readyState == 4 && http.status==200) {            	
+        http.onreadystatechange = function () {
+            if (http.readyState == 4 && http.status == 200) {
                 next(JSON.parse(http.responseText));
             }
-            if (http.readyState == 4 && http.status!=200) {
+            if (http.readyState == 4 && http.status != 200) {
                 next(UNKNWON_ERROR);
             }
         }
@@ -468,18 +382,18 @@ var doHTTPRequest = function doHTTPRequest(url, method, data, next){
 
     }
 
-    if(method == 'POST' || method == 'DELETE'){
+    if (method == 'POST' || method == 'DELETE') {
 
         http.open(method, url, true);
 
-        http.setRequestHeader("Content-Type","application/json");
+        http.setRequestHeader("Content-Type", "application/json");
 
-        http.onreadystatechange = function() {
-            if (http.readyState == 4 && http.status==200) {
-                if(method == "POST")
+        http.onreadystatechange = function () {
+            if (http.readyState == 4 && http.status == 200) {
+                if (method == "POST")
                     next(JSON.parse(http.responseText));
             }
-            if (http.readyState == 4 && http.status!=200) {
+            if (http.readyState == 4 && http.status != 200) {
                 next(UNKNWON_ERROR);
             }
         }
@@ -488,56 +402,3 @@ var doHTTPRequest = function doHTTPRequest(url, method, data, next){
 
     }
 }
-
-/************/
-/* DEMO APP */
-/************/
-
-// var data = {id:"webapp", desc:"webapp"};
-// var code = 0;
-// var sdk_subscribe = new AeonSDK("http://localhost:3000/subscribe/4e59b362-67d6-4220-808d-5e3857f278c7", data, function controlFn(data){
-// 	 console.log("Control_SUB:");
-// 	 console.log(data);
-// });
-
-// var sdk_publish = new AeonSDK('http://localhost:3000/publish/29b85779-4e6f-43cc-9d77-0e4eca4b06b5', null, function controlFn2(data){
-// 	 console.log("Control_PUB:");
-// 	 console.log(data);
-// });
-
-
-// sdk_subscribe.subscribe(function deliveredMessage(data){
-// 	console.log("Message:");
-// 	console.log(data);
-// });
-
-// setTimeout(function() {
-// 	sdk_subscribe.publish({message:"Esto mola"});
-// }, 1000);
-
-// setTimeout(function() {
-// 	console.log("Pausando...")
-//     sdk_subscribe.pauseSubscription();
-
-//     sdk_publish.publish({message:"Parece q estamos pausados"});
-
-// 	setTimeout(function() {
-// 		console.log("Continue...")
-// 	    sdk_subscribe.continueSubscription();
-
-// 	    sdk_publish.publish({message:"Ahora recibo todo!"});
-
-// 		setTimeout(function() {
-// 			console.log("Borrando...")
-// 		    sdk_subscribe.deleteSubscription();
-
-// 		}, 3000);
-// 	}, 3000);
-
-// }, 3000);
-
-
-// sdk_publish.subscribe(function deliveredMessage(data){
-// 		console.log("Message:");
-// 		console.log(data);
-// });
