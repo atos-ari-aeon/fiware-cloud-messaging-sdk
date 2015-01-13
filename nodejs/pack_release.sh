@@ -10,7 +10,7 @@ fi
 echo $1
 
 release=AeonSDK-nodejs_$1.tgz
-public=../../../rest/public/downloads/
+public=../../releases/nodejs
 echo "Packing nodejs $release"
 cd aeonSDK
 pack=`npm pack`

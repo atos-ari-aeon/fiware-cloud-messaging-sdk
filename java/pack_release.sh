@@ -9,7 +9,7 @@ fi
 echo $1
 
 release=AeonSDK-Java_$1.tgz
-public=../../rest/public/downloads/
+public=../releases/java
 echo "Packing Java $release"
 rm releases/$release
 tar -cvzf releases/$release lib/AeonSDK-$1.jar lib/socketio.jar COPYRIGHT LICENSE LICENSE.more
