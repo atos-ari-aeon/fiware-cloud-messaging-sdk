@@ -12,7 +12,7 @@ release=AeonSDK-Java_$1.tgz
 public=../../rest/public/downloads/
 echo "Packing Java $release"
 rm releases/$release
-tar -cvzf releases/$release lib/AeonSDK-$1.jar COPYRIGHT LICENSE LICENSE.more
+tar -cvzf releases/$release lib/AeonSDK-$1.jar lib/socketio.jar COPYRIGHT LICENSE LICENSE.more
 echo "Copying to download public directory"
 cp releases/$release $public
 echo "Done it..."
