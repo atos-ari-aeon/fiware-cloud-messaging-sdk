@@ -26,8 +26,16 @@ package net.atos.aeon;
 import io.socket.SocketIO;
 
 import java.net.MalformedURLException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+
+import net.atos.aeon.ClientHelper.RelaxedHostNameVerifier;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -51,8 +59,7 @@ public class AEONSDK {
 	 * we have to be aware to the possibility of using others.
 	 */
 
-	String socketServer = "http://lcb-sub.herokuapp.com";
-	//String socketServer = "http://localhost:7789";
+	String socketServer = null;
 	SocketIO socket = null;
 	String subscribeUrl = "";
 	String publishUrl = "";
@@ -69,6 +76,8 @@ public class AEONSDK {
 
 	AEONSDKMessages messages = null;
 
+	Client webClient = null;
+
 	public static class DummyCallbacks implements AEONInterface {
 
 		@Override
@@ -83,50 +92,114 @@ public class AEONSDK {
 
 	}
 
+	private String getServerEndpoint(String url) {
+		String[] parts = url.split("/");
+		return parts[0] + "//" + parts[2];
+	}
+
+	private String getSocketServerEndpoint(String url) {
+
+		WebResource webResource = this.webClient.resource(url
+				+ "/subscribe/config");
+
+		ClientResponse response = webResource.accept("application/json").get(
+				ClientResponse.class);
+		String socketServer = "";
+
+		try {
+
+			if (response.getStatus() != 200) {
+				eventCallback.control(messages.URL_ERROR);
+				subscription = null;
+			} else {
+				socketServer = new JSONObject(response.getEntity(String.class))
+						.getJSONArray("result").getJSONObject(0)
+						.getString("socket_server");
+			}
+
+		} catch (ClientHandlerException e1) {
+			e1.printStackTrace();
+			eventCallback.control(messages.UNKNWON_ERROR);
+		} catch (UniformInterfaceException e1) {
+			eventCallback.control(messages.URL_ERROR);
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			eventCallback.control(messages.UNKNWON_ERROR);
+		} catch (Exception e) {
+			eventCallback.control(messages.UNKNWON_ERROR);
+		}
+
+		return socketServer;
+	}
+	
+	private void Init(String subscribeUrl, String id, String desc) {
+	
+		this.messages = new AEONSDKMessages();
+
+		try {
+			if (subscribeUrl.indexOf("/subscribe") != -1) {
+				if (subscribeUrl.startsWith("https")) {
+
+					this.webClient = ClientHelper.createClient();
+
+					SSLContext sc = SSLContext.getInstance("TLS");
+					sc.init(null, ClientHelper.trustAllCerts,
+							new SecureRandom());
+					SocketIO.setDefaultSSLSocketFactory(sc);
+					HttpsURLConnection
+							.setDefaultHostnameVerifier(new RelaxedHostNameVerifier());
+
+				} else
+					this.webClient = Client.create();
+
+				this.subscribeUrl = subscribeUrl;
+				this.socketServer = getSocketServerEndpoint(getServerEndpoint(subscribeUrl));
+
+				this.socket = new SocketIO(socketServer);
+				this.socket.addHeader("force_new_connection", "true");
+				// this.socket.addHeader("transports", "xhr-polling");
+				// this.socket.addHeader("polling duration", "20");
+
+				this.id = id;
+				this.desc = desc;
+				this.mode = "subscribe";
+				sioLogger.setLevel(Level.OFF);
+			} else
+				this.mode = "error";
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+			this.mode = "error";
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			this.mode = "error";
+		} catch (KeyManagementException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			this.mode = "error";
+		}
+	
+	}
+
 	/*
 	 * Constructor to configure subscribe mode
 	 */
 
 	public AEONSDK(String subscribeUrl, String id, String desc) {
-		this.messages = new AEONSDKMessages();
-
-		try {
-			if (subscribeUrl.indexOf("/subscribe") != -1) {
-				this.subscribeUrl = subscribeUrl;
-				this.id = id;
-				this.desc = desc;
-				this.socket = new SocketIO(socketServer);
-				this.socket.addHeader("force_new_connection", "true");
-				//this.socket.addHeader("transports", "xhr-polling");
-				//this.socket.addHeader("polling duration", "20");
-				this.mode = "subscribe";
-				sioLogger.setLevel(Level.OFF);
-			} else
-				this.mode = "error";
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-			this.mode = "error";
-		}
+		this.Init(subscribeUrl, id, desc);
 	}
-	
-	public AEONSDK(String subscribeUrl, JSONObject subscriptionData) {
-		this.messages = new AEONSDKMessages();
 
+	public AEONSDK(String subscribeUrl, JSONObject subscriptionData) {
+		
 		try {
-			if (subscribeUrl.indexOf("/subscribe") != -1) {
-				this.subscribeUrl = subscribeUrl;
-				this.subscription = subscriptionData;
-				this.socket = new SocketIO(socketServer);
-				this.socket.addHeader("force_new_connection", "true");
-				//this.socket.addHeader("transports", "xhr-polling");
-				this.mode = "subscribe";
-				sioLogger.setLevel(Level.OFF);
-			} else
-				this.mode = "error";
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
+			this.Init(subscribeUrl, subscriptionData.get("id").toString(), subscriptionData.get("desc").toString());
+			this.subscription = subscriptionData;
+		} catch (JSONException e) {
 			this.mode = "error";
+			e.printStackTrace();
 		}
+		
+		
 	}
 
 	/*
@@ -135,20 +208,22 @@ public class AEONSDK {
 	public AEONSDK(String publishUrl) {
 		this.messages = new AEONSDKMessages();
 
-		try {
-			if (publishUrl.indexOf("/publish") != -1) {
-				this.publishUrl = publishUrl;
-				this.socket = new SocketIO(socketServer);
-				this.socket.addHeader("force_new_connection", "true");
-				this.mode = "publish";
-				sioLogger.setLevel(Level.OFF);
+		if (publishUrl.indexOf("/publish") != -1) {
 
-			} else
-				this.mode = "error";
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
+			if (publishUrl.startsWith("https"))
+
+				this.webClient = ClientHelper.createClient();
+
+			else
+				this.webClient = Client.create();
+
+			this.publishUrl = publishUrl;
+
+			this.mode = "publish";
+			sioLogger.setLevel(Level.OFF);
+
+		} else
 			this.mode = "error";
-		}
 	}
 
 	private void emitSubscriptionRequest() {
@@ -206,7 +281,7 @@ public class AEONSDK {
 
 		socket.emit("unSubscribeQueue", this.subscription);
 
-		Client client = Client.create();
+		Client client = this.webClient;
 
 		WebResource webResource;
 		try {
@@ -217,40 +292,37 @@ public class AEONSDK {
 					.entity(this.subscription.toString())
 					.post(ClientResponse.class);
 
-			if (response.getStatus() == 200){
+			if (response.getStatus() == 200) {
 				eventCallback.control(messages.SUBSCRIPTION_DELETED);
 				this.subscription = null;
-			}
-			else
+			} else
 				eventCallback.control(messages.UNKNWON_ERROR);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 
 	}
-	
-	private JSONObject getRemoteSubscription(){
-		
-		Client client = Client.create();
 
-		WebResource webResource = client.resource(this.subscribeUrl + "?id="
-				+ this.id + "&desc=" + this.desc);
+	private JSONObject getRemoteSubscription() {
+
+		System.out.println(this.subscribeUrl + "?id=" + this.id + "&desc="
+				+ this.desc);
+		WebResource webResource = this.webClient.resource(this.subscribeUrl
+				+ "?id=" + this.id + "&desc=" + this.desc);
 
 		ClientResponse response = webResource.accept("application/json").get(
 				ClientResponse.class);
 
 		JSONObject subscription = null;
 		try {
-			
 
 			if (response.getStatus() != 200) {
 				eventCallback.control(messages.URL_ERROR);
 				subscription = null;
 			} else {
 				subscription = new JSONObject(response.getEntity(String.class))
-				.getJSONArray("result").getJSONObject(0);
+						.getJSONArray("result").getJSONObject(0);
 			}
-				
 
 		} catch (ClientHandlerException e1) {
 			e1.printStackTrace();
@@ -263,7 +335,7 @@ public class AEONSDK {
 		} catch (Exception e) {
 			eventCallback.control(messages.UNKNWON_ERROR);
 		}
-		
+
 		return subscription;
 	}
 
@@ -286,14 +358,14 @@ public class AEONSDK {
 			socket.connect(aeonCallback);
 		}
 
-		if (this.subscription == null){
+		if (this.subscription == null) {
 			JSONObject requestedSubscription = getRemoteSubscription();
-			if (requestedSubscription != null){
+			if (requestedSubscription != null) {
 				this.subscription = requestedSubscription;
 				emitSubscriptionRequest();
 			}
 
-		}else
+		} else
 			emitSubscriptionRequest();
 
 		return this.subscription;
@@ -319,7 +391,7 @@ public class AEONSDK {
 		}
 
 		try {
-			Client client = Client.create();
+			Client client = this.webClient;
 
 			WebResource webResource = client.resource(this.publishUrl);
 
