@@ -6,9 +6,14 @@ then
   exit
 fi
 
-echo $1
-
 release=AeonSDK-Java_$1.tgz
+
+if [ $(grep -c $1 ./Manifest.txt) -eq 0 ]
+then
+  echo "Trying to package with a release number different than manifest, please check"
+  exit
+fi
+
 public=../releases/java
 echo "Packing Java $release"
 rm releases/$release

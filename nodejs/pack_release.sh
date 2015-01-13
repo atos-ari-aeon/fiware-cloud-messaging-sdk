@@ -7,7 +7,11 @@ then
   exit
 fi
 
-echo $1
+if [ $(grep -c $1 ./aeonSDK/package.json) -eq 0 ]
+then
+  echo "Trying to package with a release number different than package.json, please check"
+  exit
+fi
 
 release=AeonSDK-nodejs_$1.tgz
 public=../../releases/nodejs
