@@ -1,4 +1,4 @@
-![Logo](imgs/logo/web_header_medium.png)
+![Logo](resources/imgs/logo/web_header_medium.png)
 
 # Description
 
@@ -40,9 +40,6 @@ Online thecnical documentation can be [find here](http://lcb.herokuapp.com/publi
  sdk = new AeonSDK(channel.SUB_URL, config.YOUR_ID , config.YOUR_DESC);
  sdk.subscribe(function(msg){ console.log(msg)});
 ```
-# How to deploy
-
-To deploy AEON in Heroku check this *[tutorial](http://gitlab.atosresearch.eu/ari/aeon-platform/wikis/HOW-TO-DEPLOY-AEON-IN-HEROKU)* 
 
 # In Use
 
@@ -54,6 +51,6 @@ Currently AEON has been deployed in:
 
 Due the interoperability needs of these architectures, AEON has been fully
 designed considering Free Libre Open Source Software technologies. 
-The project has been designed and implemented by the â€œTransport and Trade  Logistics Sector in the Research & Innovation department in ATOS Spainâ€.
+The project has been designed and implemented by the Transport and Trade  Logistics Sector in the Research & Innovation department in ATOS Spain.
 
 AEON Platform is released as Open Source.
