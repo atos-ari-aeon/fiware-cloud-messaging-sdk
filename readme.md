@@ -1,4 +1,4 @@
-![Logo](resources/imgs/logo/web_header_medium.png)
+![Logo](resources/logo/web_header_medium.png)
 
 # Description
 
